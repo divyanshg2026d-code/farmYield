@@ -1,6 +1,8 @@
+from pathlib import Path
+
 import streamlit as st
 
-from src.data import load_training_data
+from src.data import DATA_PATH, load_training_data
 from src.model import train_evaluate, predict
 
 st.set_page_config(page_title="FarmYield | India Rice Planner", page_icon="🌾", layout="wide")
@@ -11,21 +13,28 @@ st.write("Explore historical district level rice yield benchmarks by state, dist
 with st.sidebar:
     st.header("Data source")
     csv_path = st.text_input("CSV path (optional)", value="")
-    st.caption("Use the included historical crop production CSV by default. A replacement must contain State_Name, District_Name, Crop_Year, Season, Crop, Area, and Production.")
+    st.caption("Default data covers rice records from 1997 to 2022. You can also load a DES-format CSV or a standardized Dataful CSV.")
 
 @st.cache_resource(show_spinner="Loading records and evaluating the model…")
-def get_result(path: str):
+def get_result(path: str, source_signature: tuple[int, int]):
     data, label = load_training_data(path or None)
     return data, label, train_evaluate(data)
 
 try:
-    data, source_label, result = get_result(csv_path)
+    active_path = Path(csv_path) if csv_path else DATA_PATH
+    try:
+        stat = active_path.stat()
+        source_signature = (stat.st_mtime_ns, stat.st_size)
+    except FileNotFoundError:
+        source_signature = (-1, -1)
+    data, source_label, result = get_result(csv_path, source_signature)
 except Exception as exc:
     st.error(f"Could not prepare the model: {exc}")
     st.stop()
 
-st.success(f"{source_label} · {len(data):,} rice records · {data['year'].min()}–{data['year'].max()}")
+st.success(f"{source_label} · {len(data):,} valid rice records")
 st.warning("This is a historical benchmark, not a farm-specific forecast. Yield is calculated as recorded production divided by recorded area. Historical associations do not establish cause or predict weather-driven changes.")
+st.caption("The bundled 1997-2022 file is a public mirror of the DES / India Data Portal series. Its exact byte-for-byte match to the official download has not been verified. Very high reported yields are retained and should be reviewed against source records before operational use.")
 
 left, right = st.columns([1, 1])
 with left:

@@ -4,11 +4,11 @@ A Streamlit capstone prototype for comparing historical rice yield records acros
 
 ## Dataset and scope
 
-The included `data/raw/india_crop_production.csv` is a public mirror of India's district-wise, season-wise crop production statistics. The Government of India's Open Government Data catalog describes the source as district/crop/season/year records with cultivated area (hectares) and production (tonnes), under the Government Open Data License — India. The raw file contains 246,091 records across crops; the rice slice contains 15,104 records, years 1997–2015, and 33 state/UT labels. The loader removes records with missing/nonpositive area or production and derives `yield_tonnes_ha = Production / Area`.
+The default file, `data/raw/india_crop_production.csv`, is a public mirror of the DES / India Data Portal district-wise crop-production series. It covers crop-year labels 1997-2022. It has 407,315 rows across crops and 25,073 rice rows before cleaning; FarmYield retains 25,024 valid rice records. The previous 1997-2015 file is preserved at `data/archive/india_crop_production_1997_2015.csv` for comparison. The updated mirror's exact identity and redistribution terms have not been independently verified; see the data-source audit.
 
-Primary catalog: [District-wise, season-wise crop production statistics](https://www.data.gov.in/catalog/district-wise-season-wise-crop-production-statistics-0) and [resource page](https://www.data.gov.in/resource/district-wise-season-wise-crop-production-statistics-1997). Download mirror used for the bundled CSV: [GitHub raw file](https://raw.githubusercontent.com/dibyendubiswas1998/Crop-Production-Analysis/main/DATA/crop_production.csv). The mirror is a convenience; cite the official catalog in project materials and verify current licensing/provenance with your instructor before redistribution.
+Primary catalog: [District-wise, season-wise crop production statistics](https://www.data.gov.in/catalog/district-wise-season-wise-crop-production-statistics-0). Updated public copy and source notes: [repository README](https://github.com/Ankush-Manhas840/crop-yield-prediction/blob/master/README.md) and [CSV](https://github.com/Ankush-Manhas840/crop-yield-prediction/blob/master/data/crop_production.csv). Cite the official catalog in project materials and confirm licensing/provenance before redistribution.
 
-See [data/SOURCES.md](data/SOURCES.md) for the current data freshness audit and candidate official weather/yield sources. The app must remain labeled as historical analysis until more recent target records are verified and aligned.
+See [data/SOURCES.md](data/SOURCES.md) for data validation, lineage, caveats, and weather-source plans. The app remains labeled as historical analysis; its latest validation years are not a forward forecast.
 
 **Scope limitation:** this source has no soil, fertilizer, weather, farm-level observations, or costs. The product is therefore a historical district-level benchmark, not an in-season/farm-specific prediction or input optimizer. The interface states this limitation.
 
@@ -21,7 +21,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-The app loads the bundled CSV by default. To try a replacement file, enter its path in the sidebar. Expected raw columns: `State_Name`, `District_Name`, `Crop_Year`, `Season`, `Crop`, `Area`, and `Production`.
+The app loads the updated bundled CSV by default. To try another file, enter its path in the sidebar. The loader supports both DES legacy columns (`State_Name`, `District_Name`, `Crop_Year`, `Season`, `Crop`, `Area`, `Production`) and standardized Dataful columns (`state`, `fiscal_year`, `district_as_per_lgd`, `season`, `crop`, `area`, `production`).
 
 ## Model and evaluation
 
@@ -31,7 +31,7 @@ The app loads the bundled CSV by default. To try a replacement file, enter its p
 
 Numeric year values are median-imputed; state/district/season are mode-imputed and one-hot encoded. The Random Forest starts with 300 trees, depth 16, leaf size 3, and `max_features=0.8`. XGBoost uses squared-error regression and a six-draw randomized search over tree count, depth, learning rate, row/column subsampling, minimum child weight, and L2 regularization. Whole years are kept together in expanding forward-chaining folds; the final three years remain a separate holdout. Model choice is based on training-period CV MAE, and holdout scores are reported for the district-season baseline, Random Forest, and tuned XGBoost.
 
-This remains an historical benchmark. The bundled file still ends in 2015 and has no weather features, so XGBoost is an algorithm comparison—not a replacement for modern data or evidence of future-year forecasting ability. Before capstone claims, refresh yield records, join weather only if coverage and geography align, rerun the same time-aware evaluation, and analyze subgroup errors. Permutation importance is associative, not causal. Displayed performance values may differ from independently reprocessed variants.
+This remains a historical benchmark. The refreshed file reaches crop-year 2022 but has no weather features, so XGBoost is an algorithm comparison—not a current-season forecaster. Extreme reported yields are retained for review; validate source units and outliers before operational use. Before capstone claims, join weather only if coverage and geography align, rerun the same time-aware evaluation, and analyze subgroup errors. Permutation importance is associative, not causal. Displayed performance values may differ from independently reprocessed variants.
 
 ## Business hypothesis to validate
 
