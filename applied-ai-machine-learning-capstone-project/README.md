@@ -44,3 +44,4 @@ Regional procurement and cooperative planning teams may use historical district-
 3. Compare the district-season baseline, Random Forest, and tuned XGBoost with the same time-aware split.
 4. Create residual plots and subgroup error analysis; document under-represented regions and unstable records.
 5. Quantify any ROI with stakeholder-provided baseline costs and measured pilot results; do not infer savings from MAE alone.
+The illustrative ROI calculator uses editable team assumptions for procurement spend, potentially affected spend, adoption, and annual operating cost. These are scenario results, not measured savings; validate them in a stakeholder pilot before presenting them as business outcomes.
