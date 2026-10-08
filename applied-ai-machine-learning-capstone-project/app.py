@@ -85,3 +85,36 @@ st.divider()
 st.subheader("Business use and limits")
 st.write("Potential users: rice procurement teams, cooperatives, and regional agricultural planners comparing historical district-season yield levels for storage, transport, and sourcing plans. Validate with stakeholders before using this for operational decisions.")
 st.info("The source table is aggregated at district/crop/season/year level. It lacks within-season weather, soil, input quantities, farm-level outcomes, and costs; this version cannot optimize fertilizer or claim farm-level ROI.")
+st.divider()
+st.subheader("Illustrative business case")
+st.caption("Enter assumptions from a procurement team or pilot. These are scenario inputs, not measured FarmYield savings.")
+roi_left, roi_right = st.columns(2)
+with roi_left:
+    annual_spend_crore = st.number_input(
+        "Annual rice procurement spend (₹ crore)", min_value=0.0, value=0.0, step=1.0,
+        help="Use the annual spend of the team that might use this planning tool.",
+    )
+    avoidable_share_pct = st.slider(
+        "Share of spend potentially affected by better planning (%)", min_value=0, max_value=20, value=0,
+        help="Set this only from a stakeholder estimate or measured pilot; leave at 0 until you have one.",
+    )
+with roi_right:
+    adoption_pct = st.slider(
+        "Expected adoption by the planning team (%)", min_value=0, max_value=100, value=0,
+        help="The share of relevant planning activity expected to use the tool.",
+    )
+    annual_cost_lakh = st.number_input(
+        "Annual tool and operating cost (₹ lakh)", min_value=0.0, value=0.0, step=1.0,
+        help="Include any annual data, hosting, training, and support costs.",
+    )
+gross_value_lakh = annual_spend_crore * 100 * avoidable_share_pct / 100 * adoption_pct / 100
+net_value_lakh = gross_value_lakh - annual_cost_lakh
+value_col, cost_col, roi_col = st.columns(3)
+value_col.metric("Illustrative annual value", f"₹{gross_value_lakh:,.1f} lakh")
+cost_col.metric("Annual operating cost", f"₹{annual_cost_lakh:,.1f} lakh")
+if annual_cost_lakh > 0:
+    roi_pct = net_value_lakh / annual_cost_lakh * 100
+    roi_col.metric("Illustrative net ROI", f"{roi_pct:,.0f}%")
+else:
+    roi_col.metric("Illustrative net value", f"₹{net_value_lakh:,.1f} lakh")
+st.caption("Formula: (annual spend × potentially affected share × adoption rate) − annual tool cost. Validate every assumption in a stakeholder pilot; model accuracy alone does not establish financial value.")
